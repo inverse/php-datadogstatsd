@@ -4,14 +4,13 @@ namespace DataDog;
 
 /**
  * Datadog implementation of StatsD
- **/
-
+ */
 class DogStatsd
 {
-    const OK        = 0;
-    const WARNING   = 1;
-    const CRITICAL  = 2;
-    const UNKNOWN   = 3;
+    const OK = 0;
+    const WARNING = 1;
+    const CRITICAL = 2;
+    const UNKNOWN = 3;
 
     /**
      * @var string
@@ -69,13 +68,17 @@ class DogStatsd
      */
     public function __construct(array $config = array())
     {
-        $this->host = isset($config['host']) ? $config['host'] : (getenv('DD_AGENT_HOST') ? getenv('DD_AGENT_HOST') : 'localhost');
-        $this->port = isset($config['port']) ? $config['port'] : (getenv('DD_DOGSTATSD_PORT') ? (int)getenv('DD_DOGSTATSD_PORT') : 8125);
+        $this->host = isset($config['host']) ? $config['host'] : (getenv('DD_AGENT_HOST') ? getenv(
+            'DD_AGENT_HOST'
+        ) : 'localhost');
+        $this->port = isset($config['port']) ? $config['port'] : (getenv('DD_DOGSTATSD_PORT') ? (int)getenv(
+            'DD_DOGSTATSD_PORT'
+        ) : 8125);
         $this->socketPath = isset($config['socket_path']) ? $config['socket_path'] : null;
 
         $this->datadogHost = isset($config['datadog_host']) ? $config['datadog_host'] : 'https://app.datadoghq.com';
-        $this->apiCurlSslVerifyHost = isset($config['curl_ssl_verify_host']) ? $config['curl_ssl_verify_host'] : 2;
-        $this->apiCurlSslVerifyPeer = isset($config['curl_ssl_verify_peer']) ? $config['curl_ssl_verify_peer'] : 1;
+        $this->curlVerifySslHost = isset($config['curl_ssl_verify_host']) ? $config['curl_ssl_verify_host'] : 2;
+        $this->curlVerifySslPeer = isset($config['curl_ssl_verify_peer']) ? $config['curl_ssl_verify_peer'] : 1;
 
         $this->apiKey = isset($config['api_key']) ? $config['api_key'] : null;
         $this->appKey = isset($config['app_key']) ? $config['app_key'] : null;
@@ -110,10 +113,10 @@ class DogStatsd
      * @param float $time The elapsed time to log, IN SECONDS
      * @param float $sampleRate the rate (0-1) for sampling.
      * @param array|string $tags Key Value array of Tag => Value, or single tag as string
-     **/
+     */
     public function microtiming($stat, $time, $sampleRate = 1.0, $tags = null)
     {
-        $this->timing($stat, $time*1000, $sampleRate, $tags);
+        $this->timing($stat, $time * 1000, $sampleRate, $tags);
     }
 
     /**
@@ -123,7 +126,7 @@ class DogStatsd
      * @param float $value The value
      * @param float $sampleRate the rate (0-1) for sampling.
      * @param array|string $tags Key Value array of Tag => Value, or single tag as string
-     **/
+     */
     public function gauge($stat, $value, $sampleRate = 1.0, $tags = null)
     {
         $this->send(array($stat => "$value|g"), $sampleRate, $tags);
@@ -136,7 +139,7 @@ class DogStatsd
      * @param float $value The value
      * @param float $sampleRate the rate (0-1) for sampling.
      * @param array|string $tags Key Value array of Tag => Value, or single tag as string
-     **/
+     */
     public function histogram($stat, $value, $sampleRate = 1.0, $tags = null)
     {
         $this->send(array($stat => "$value|h"), $sampleRate, $tags);
@@ -149,7 +152,7 @@ class DogStatsd
      * @param float $value The value
      * @param float $sampleRate the rate (0-1) for sampling.
      * @param array|string $tags Key Value array of Tag => Value, or single tag as string
-     **/
+     */
     public function distribution($stat, $value, $sampleRate = 1.0, $tags = null)
     {
         $this->send(array($stat => "$value|d"), $sampleRate, $tags);
@@ -162,7 +165,7 @@ class DogStatsd
      * @param float $value The value
      * @param float $sampleRate the rate (0-1) for sampling.
      * @param array|string $tags Key Value array of Tag => Value, or single tag as string
-     **/
+     */
     public function set($stat, $value, $sampleRate = 1.0, $tags = null)
     {
         $this->send(array($stat => "$value|s"), $sampleRate, $tags);
@@ -176,8 +179,7 @@ class DogStatsd
      * @param float $sampleRate the rate (0-1) for sampling.
      * @param array|string $tags Key Value array of Tag => Value, or single tag as string
      * @param int $value the amount to increment by (default 1)
-     * @return boolean
-     **/
+     */
     public function increment($stats, $sampleRate = 1.0, $tags = null, $value = 1)
     {
         $this->updateStats($stats, $value, $sampleRate, $tags);
@@ -190,8 +192,7 @@ class DogStatsd
      * @param float $sampleRate the rate (0-1) for sampling.
      * @param array|string $tags Key Value array of Tag => Value, or single tag as string
      * @param int $value the amount to decrement by (default -1)
-     * @return boolean
-     **/
+     */
     public function decrement($stats, $sampleRate = 1.0, $tags = null, $value = -1)
     {
         if ($value > 0) {
@@ -207,9 +208,7 @@ class DogStatsd
      * @param int $delta The amount to increment/decrement each metric by.
      * @param float $sampleRate the rate (0-1) for sampling.
      * @param array|string $tags Key Value array of Tag => Value, or single tag as string
-     *
-     * @return boolean
-     **/
+     */
     public function updateStats($stats, $delta = 1, $sampleRate = 1.0, $tags = null)
     {
         if (!is_array($stats)) {
@@ -228,7 +227,7 @@ class DogStatsd
      * @param string|array $tags The tags to be serialize
      *
      * @return string
-     **/
+     */
     private function serialize_tags($tags)
     {
         $all_tags = array_merge(
@@ -244,10 +243,11 @@ class DogStatsd
             if ($value === null) {
                 $tag_strings[] = $tag;
             } else {
-                $tag_strings[] = $tag . ':' . $value;
+                $tag_strings[] = $tag.':'.$value;
             }
         }
-        return '|#' . implode(',', $tag_strings);
+
+        return '|#'.implode(',', $tag_strings);
     }
 
     /**
@@ -261,6 +261,7 @@ class DogStatsd
         if ($tags === null) {
             return array();
         }
+
         if (is_array($tags)) {
             $data = array();
             foreach ($tags as $tag_key => $tag_val) {
@@ -270,20 +271,22 @@ class DogStatsd
                     $data[$tag_key] = null;
                 }
             }
-            return $data;
-        } else {
-            $tags = explode(',', $tags);
-            $data = array();
-            foreach ($tags as $tag_string) {
-                if (false === strpos($tag_string, ':')) {
-                    $data[$tag_string] = null;
-                } else {
-                    list($key, $value) = explode(':', $tag_string, 2);
-                    $data[$key] = $value;
-                }
-            }
+
             return $data;
         }
+
+        $tags = explode(',', $tags);
+        $data = array();
+        foreach ($tags as $tag_string) {
+            if (false === strpos($tag_string, ':')) {
+                $data[$tag_string] = null;
+            } else {
+                list($key, $value) = explode(':', $tag_string, 2);
+                $data[$key] = $value;
+            }
+        }
+
+        return $data;
     }
 
     /**
@@ -291,9 +294,7 @@ class DogStatsd
      * @param array $data Incoming Data
      * @param float $sampleRate the rate (0-1) for sampling.
      * @param array|string $tags Key Value array of Tag => Value, or single tag as string
-     *
-     * @return null
-     **/
+     */
     public function send($data, $sampleRate = 1.0, $tags = null)
     {
         // sampling
@@ -328,7 +329,7 @@ class DogStatsd
      * @param int $timestamp timestamp for the service check status (defaults to now)
      *
      * @return null
-     **/
+     */
     public function service_check(
         $name,
         $status,
@@ -366,7 +367,11 @@ class DogStatsd
     public function flush($udp_message)
     {
         // Non - Blocking UDP I/O - Use IP Addresses!
-        $socket = is_null($this->socketPath) ? socket_create(AF_INET, SOCK_DGRAM, SOL_UDP) : socket_create(AF_UNIX, SOCK_DGRAM, 0);
+        $socket = is_null($this->socketPath) ? socket_create(AF_INET, SOCK_DGRAM, SOL_UDP) : socket_create(
+            AF_UNIX,
+            SOCK_DGRAM,
+            0
+        );
         socket_set_nonblock($socket);
 
         if (!is_null($this->socketPath)) {
@@ -387,7 +392,7 @@ class DogStatsd
      * @param array $vals Optional values of the event. See
      *   https://docs.datadoghq.com/api/?lang=bash#post-an-event for the valid keys
      * @return null
-     **/
+     */
     public function event($title, $vals = array())
     {
 
@@ -410,9 +415,9 @@ class DogStatsd
         $success = true;
 
         // Get the url to POST to
-        $url = $this->datadogHost . self::$__eventUrl
-             . '?api_key='          . $this->apiKey
-             . '&application_key='  . $this->appKey;
+        $url = $this->datadogHost.self::$__eventUrl
+            .'?api_key='.$this->apiKey
+            .'&application_key='.$this->appKey;
 
         $curl = curl_init($url);
 
@@ -426,18 +431,20 @@ class DogStatsd
 
         // Nab response and HTTP code
         $response_body = curl_exec($curl);
-        $response_code = (int) curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        $response_code = (int)curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
         try {
 
             // Check for cURL errors
             if ($curlErrorNum = curl_errno($curl)) {
-                throw new \Exception('Datadog event API call cURL issue #' . $curlErrorNum . ' - ' . curl_error($curl));
+                throw new \Exception('Datadog event API call cURL issue #'.$curlErrorNum.' - '.curl_error($curl));
             }
 
             // Check response code is 202
             if ($response_code !== 200 && $response_code !== 202) {
-                throw new \Exception('Datadog event API call HTTP response not OK - ' . $response_code . '; response body: ' . $response_body);
+                throw new \Exception(
+                    'Datadog event API call HTTP response not OK - '.$response_code.'; response body: '.$response_body
+                );
             }
 
             // Check for empty response body
@@ -447,12 +454,14 @@ class DogStatsd
 
             // Decode JSON response
             if (!$decodedJson = json_decode($response_body, true)) {
-                throw new \Exception('Datadog event API call did not return a body that could be decoded via json_decode');
+                throw new \Exception(
+                    'Datadog event API call did not return a body that could be decoded via json_decode'
+                );
             }
 
             // Check JSON decoded "status" is OK from the Datadog API
             if ($decodedJson['status'] !== 'ok') {
-                throw new \Exception('Datadog event API response  status not "ok"; response body: ' . $response_body);
+                throw new \Exception('Datadog event API response  status not "ok"; response body: '.$response_body);
             }
         } catch (\Exception $e) {
             $success = false;
@@ -462,6 +471,7 @@ class DogStatsd
         }
 
         curl_close($curl);
+
         return $success;
     }
 
@@ -475,27 +485,27 @@ class DogStatsd
     {
 
         // Format required values title and text
-        $title = isset($vals['title']) ? (string) $vals['title'] : '';
-        $text = isset($vals['text']) ? (string) $vals['text'] : '';
+        $title = isset($vals['title']) ? (string)$vals['title'] : '';
+        $text = isset($vals['text']) ? (string)$vals['text'] : '';
 
         // Format fields into string that follows Datadog event submission via UDP standards
         //   http://docs.datadoghq.com/guides/dogstatsd/#events
         $fields = '';
         $fields .= ($title);
-        $textField = ($text) ? '|' . str_replace("\n", "\\n", $text) : '|';
+        $textField = ($text) ? '|'.str_replace("\n", "\\n", $text) : '|';
         $fields .= $textField;
-        $fields .= (isset($vals['date_happened'])) ? '|d:' . ((string) $vals['date_happened']) : '';
-        $fields .= (isset($vals['hostname'])) ? '|h:' . ((string) $vals['hostname']) : '';
-        $fields .= (isset($vals['aggregation_key'])) ? '|k:' . ((string) $vals['aggregation_key']) : '';
-        $fields .= (isset($vals['priority'])) ? '|p:' . ((string) $vals['priority']) : '';
-        $fields .= (isset($vals['source_type_name'])) ? '|s:' . ((string) $vals['source_type_name']) : '';
-        $fields .= (isset($vals['alert_type'])) ? '|t:' . ((string) $vals['alert_type']) : '';
+        $fields .= (isset($vals['date_happened'])) ? '|d:'.((string)$vals['date_happened']) : '';
+        $fields .= (isset($vals['hostname'])) ? '|h:'.((string)$vals['hostname']) : '';
+        $fields .= (isset($vals['aggregation_key'])) ? '|k:'.((string)$vals['aggregation_key']) : '';
+        $fields .= (isset($vals['priority'])) ? '|p:'.((string)$vals['priority']) : '';
+        $fields .= (isset($vals['source_type_name'])) ? '|s:'.((string)$vals['source_type_name']) : '';
+        $fields .= (isset($vals['alert_type'])) ? '|t:'.((string)$vals['alert_type']) : '';
         $fields .= (isset($vals['tags'])) ? $this->serialize_tags($vals['tags']) : '';
 
         $title_length = strlen($title);
-        $text_length = strlen($textField)-1;
+        $text_length = strlen($textField) - 1;
 
-        $this->report('_e{' . $title_length . ',' . $text_length . '}:' . $fields);
+        $this->report('_e{'.$title_length.','.$text_length.'}:'.$fields);
 
         return null;
     }

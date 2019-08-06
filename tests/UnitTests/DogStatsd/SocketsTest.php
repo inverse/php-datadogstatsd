@@ -936,9 +936,9 @@ class SocketsTest extends SocketSpyTestCase
 
         $spy = $this->getSocketSpy();
 
-        $this->assertSame(
+        $this->assertCount(
             1,
-            count($spy->argsFromSocketSendtoCalls),
+            $spy->argsFromSocketSendtoCalls,
             'Should send 1 UDP message'
         );
 
